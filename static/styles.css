@@ -1,0 +1,98 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+.divider {
+    border: 1px solid #ddd;
+}
+
+.hover-info {
+    cursor: help;
+    border-bottom: 1px dotted #000;
+}
+
+.sidebar .sidebar-content {
+    height: 400px;
+    overflow: hidden;
+}
+
+#ticker-container {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+#ticker {
+    display: flex;
+    flex-direction: column;
+    animation: ticker-scroll 20s linear infinite;
+}
+
+.ticker-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.symbol-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.symbol {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.company-name {
+    font-size: 0.9em;
+    color: #555;
+}
+
+.price,
+.change {
+    font-size: 1.2em;
+}
+
+.up {
+    color: green;
+}
+
+.down {
+    color: red;
+}
+
+.no-change {
+    color: grey;
+}
+
+@keyframes ticker-scroll {
+    0% {
+        transform: translateY(0%);
+    }
+    100% {
+        transform: translateY(-50%);
+    }
+}
+
+.title-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title-container h1 {
+    margin: 0;
+}
+
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
