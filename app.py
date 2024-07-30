@@ -24,7 +24,6 @@ st.markdown(css_content, unsafe_allow_html=True)
 st.markdown('<div class="title-container"><h1>Investment Portfolio Dashboard</h1>', unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 about_button = st.button("About")
-back_button_top = st.button("Back to Dashboard")
 
 if about_button:
     st.markdown("""
@@ -81,7 +80,7 @@ if about_button:
 
         **Developed by Vayk Mathrani**
     """)
-    if st.button("Back to Dashboard") or back_button_top:
+    if st.button("Back to Dashboard"):
         st.experimental_rerun()
     st.stop()  # Stop further execution to only show the About page when button is clicked
 
@@ -132,7 +131,7 @@ def fetch_popular_tickers():
     tickers = []
     for a in soup.find_all('a', {'class': 'Fw(600) C($linkColor)'}):
         tickers.append(a.text)
-    return tickers[:50]  # Limit to top 50 most active tickers
+    return tickers[:100]  # Limit to top 100 most active tickers
 
 
 # Fetch company name

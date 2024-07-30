@@ -2,7 +2,6 @@ streamlit
 yfinance
 pandas
 plotly
-newsapi
 numpy
 scipy
 requests

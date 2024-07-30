@@ -6,6 +6,8 @@ import plotly.graph_objects as go
 from datetime import datetime
 from newsapi import NewsApiClient
 from tabs.portfolio_overview import get_stock_data
+import time
+
 
 # Function to get sector performance
 def get_sector_performance():
@@ -27,16 +29,60 @@ def get_sector_performance():
     df = pd.DataFrame(list(sector_performance.items()), columns=['sector', 'performance'])
     return df
 
+
 # Function to get financial news
 def get_financial_news(api_key, query):
     newsapi = NewsApiClient(api_key=api_key)
     today = datetime.today().strftime('%Y-%m-%d')
     one_month_ago = (datetime.today() - pd.DateOffset(months=1)).strftime('%Y-%m-%d')
-    everything = newsapi.get_everything(q=query, language='en', from_param=one_month_ago, to=today, sort_by='publishedAt', page_size=20)
-    articles = everything['articles']
-    # Filter out articles with '[Removed]' in the title or description
-    valid_articles = [article for article in articles if '[Removed]' not in article['title'] and '[Removed]' not in article['description']]
-    return valid_articles
+    retries = 3
+
+    for attempt in range(retries):
+        try:
+            everything = newsapi.get_everything(q=query, language='en', from_param=one_month_ago, to=today,
+                                                sort_by='publishedAt', page_size=20)
+            articles = everything['articles']
+            valid_articles = [article for article in articles if
+                              '[Removed]' not in article['title'] and '[Removed]' not in article['description']]
+            return valid_articles
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 401:
+                st.error(f"Unauthorized access - please check your API key. Attempt {attempt + 1} of {retries}.")
+            else:
+                st.error(f"Failed to fetch news articles: {str(e)}. Attempt {attempt + 1} of {retries}.")
+            if attempt < retries - 1:
+                time.sleep(2)
+            else:
+                st.error("Max retries reached. Could not fetch news articles.")
+    return []
+
+
+def get_stock_data(tickers, start_date="2020-01-01", end_date=None):
+    if end_date is None:
+        end_date = datetime.today().strftime('%Y-%m-%d')
+    data = {}
+    failed_tickers = []
+
+    for ticker in tickers:
+        attempt = 0
+        success = False
+        while attempt < 3 and not success:
+            try:
+                ticker_data = yf.download(ticker, start=start_date, end=end_date)['Adj Close']
+                if ticker_data.empty:
+                    raise Exception("No data found")
+                data[ticker] = ticker_data
+                success = True
+            except Exception as e:
+                attempt += 1
+                if attempt < 3:
+                    time.sleep(2)  # Wait before retrying
+                else:
+                    failed_tickers.append(ticker)
+                    st.error(f"Failed to download data for: {ticker} after 3 attempts")
+
+    return pd.DataFrame(data), failed_tickers
+
 
 def market_data():
     st.markdown("## Market Data")
@@ -94,7 +140,8 @@ def market_data():
                     name=ticker,
                     hovertemplate=f"{ticker} Cumulative Return: %{{y:.2%}}<extra></extra>"
                 ))
-            fig.update_layout(title='Cumulative Returns', xaxis_title='Date', yaxis_title='Cumulative Return', hovermode="x unified")
+            fig.update_layout(title='Cumulative Returns', xaxis_title='Date', yaxis_title='Cumulative Return',
+                              hovermode="x unified")
             st.plotly_chart(fig)
 
             # Horizontal barrier
@@ -173,4 +220,3 @@ def market_data():
     sector_performance = get_sector_performance()
     fig = px.bar(sector_performance, x='sector', y='performance', title='Sector Performance')
     st.plotly_chart(fig)
-
